@@ -5,13 +5,13 @@ import (
 
 	"github.com/oscal-compass/compliance-to-policy-go/v2/plugin"
 
-	"github.com/complytime/compliance-to-policy-plugins/opa-plugin/server"
+	"github.com/complytime/compliance-to-policy-plugins/conforma-opa-plugin/server"
 )
 
 func main() {
-	opaPlugin := server.NewPlugin()
+	conformaPlugin := server.NewPlugin()
 	plugins := map[string]hplugin.Plugin{
-		plugin.PVPPluginName: &plugin.PVPPlugin{Impl: opaPlugin},
+		plugin.PVPPluginName: &plugin.PVPPlugin{Impl: conformaPlugin},
 	}
 	config := plugin.ServeConfig{
 		PluginSet: plugins,

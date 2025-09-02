@@ -41,7 +41,7 @@ func (p *Plugin) Configure(_ context.Context, m map[string]string) error {
 
 func (p *Plugin) Generate(_ context.Context, pl policy.Policy) error {
 	composer := NewComposer(p.config.PolicyTemplates, p.config.PolicyOutput)
-	if err := composer.GeneratePolicySet(pl); err != nil {
+	if err := composer.GeneratePolicySet(pl, p.config); err != nil {
 		return fmt.Errorf("error generating policies: %w", err)
 	}
 
@@ -67,8 +67,8 @@ func (p *Plugin) GetResults(_ context.Context, pl policy.Policy) (policy.PVPResu
 		for _, check := range rule.Checks {
 			name := check.ID
 
-			normalizedOPAResults := policyIndex.ResultsByPolicyId(name)
-			if len(normalizedOPAResults) > 0 {
+			reports := policyIndex.ResultsByPolicyId(name)
+			if len(reports) > 0 {
 				observation := policy.ObservationByCheck{
 					Title:       rule.Rule.ID,
 					CheckID:     name,
@@ -77,8 +77,8 @@ func (p *Plugin) GetResults(_ context.Context, pl policy.Policy) (policy.PVPResu
 					Collected:   time.Now(),
 					Subjects:    []policy.Subject{},
 				}
-				for _, result := range normalizedOPAResults {
-					observation.Subjects = append(observation.Subjects, results2Subject(result))
+				for _, result := range reports {
+					observation.Subjects = append(observation.Subjects, results2Subject(result)...)
 				}
 				observations = append(observations, observation)
 			}
@@ -91,26 +91,28 @@ func (p *Plugin) GetResults(_ context.Context, pl policy.Policy) (policy.PVPResu
 	return result, nil
 }
 
-func results2Subject(results NormalizedOPAResult) policy.Subject {
-	subject := policy.Subject{
-		Title:      results.EvaluatedResourceName,
-		ResourceID: results.EvaluatedResourceID,
-		Type:       results.EvaluatedResourceType,
-		Result:     mapResults(results),
-		// TODO: This is not really representative of when the policy was executing.
-		// It may require additional decision metadata to accomplish this.
-		EvaluatedOn: time.Now(),
-		Reason:      results.Reason,
-	}
-
-	if len(results.Violations) > 0 {
-		var sb strings.Builder
-		sb.WriteString(fmt.Sprintf("%s Violations:", subject.Reason))
-		for _, violation := range results.Violations {
-			sb.WriteString(fmt.Sprintf(" %s", violation))
+func results2Subject(report Report) []policy.Subject {
+	var subjects []policy.Subject
+	for _, input := range report.FilePaths {
+		subject := policy.Subject{
+			Title:       fmt.Sprintf("%s-%s", report.Policy.Name, input.FilePath),
+			ResourceID:  input.FilePath,
+			Type:        "resource",
+			Result:      mapResults(input),
+			EvaluatedOn: report.EffectiveTime,
 		}
-		subject.Reason = sb.String()
-	}
 
-	return subject
+		if len(input.Violations) > 0 || len(input.Successes) > 0 {
+			var sb strings.Builder
+			sb.WriteString(fmt.Sprintf("%s Violations:", subject.Reason))
+			for _, violation := range input.Violations {
+				sb.WriteString(fmt.Sprintf(" %s", violation))
+			}
+			for _, success := range input.Successes {
+				sb.WriteString(fmt.Sprintf(" %s", success))
+			}
+			subject.Reason = sb.String()
+		}
+	}
+	return subjects
 }

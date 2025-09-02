@@ -11,9 +11,14 @@ type Config struct {
 	PolicyTemplates string `mapstructure:"policy-templates"`
 	PolicyOutput    string `mapstructure:"policy-output"`
 	PolicyResults   string `mapstructure:"policy-results"`
-	// Bundle optionally by setting this value
-	Bundle         string `mapstructure:"bundle"`
-	BundleRevision string `mapstructure:"bundle-revision"`
+
+	// Conforma
+	ConformaPolicyPath string `mapstructure:"conforma-policy-path"`
+
+	// Bundle local policy optionally by setting this value
+	Bundle               string `mapstructure:"bundle"`
+	BundleTargetLocation string `mapsturcture:"bundle-location"`
+	BundleRevision       string `mapstructure:"bundle-revision"`
 	// TODO: Add support for signing
 }
 
@@ -25,6 +30,11 @@ func (c Config) Validate() error {
 	if err := checkPath(&c.PolicyResults); err != nil {
 		errs = append(errs, err)
 	}
+
+	if err := checkPath(&c.ConformaPolicyPath); err != nil {
+		errs = append(errs, err)
+	}
+
 	if err := checkPath(&c.PolicyTemplates); err != nil {
 		errs = append(errs, err)
 	}
