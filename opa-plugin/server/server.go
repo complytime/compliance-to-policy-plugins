@@ -98,7 +98,7 @@ func results2Subject(report Report) []policy.Subject {
 	var subjects []policy.Subject
 	for _, input := range report.FilePaths {
 		subject := policy.Subject{
-			Title:       fmt.Sprintf("%s-%s", report.Policy.Name, input.FilePath),
+			Title:       fmt.Sprintf("%s assessment for %s", report.Policy.Name, input.FilePath),
 			ResourceID:  input.FilePath,
 			Type:        "resource",
 			Result:      mapResults(input),
