@@ -25,29 +25,32 @@ func Logger() hclog.Logger {
 }
 
 type Plugin struct {
-	config Config
+	config *Config
 }
 
 func NewPlugin() *Plugin {
-	return &Plugin{}
+	return &Plugin{
+		config: &Config{},
+	}
 }
 
 func (p *Plugin) Configure(_ context.Context, m map[string]string) error {
 	if err := mapstructure.Decode(m, &p.config); err != nil {
 		return errors.New("error decoding configuration")
 	}
+	p.config.Complete()
 	return p.config.Validate()
 }
 
-func (p *Plugin) Generate(_ context.Context, pl policy.Policy) error {
+func (p *Plugin) Generate(ctx context.Context, pl policy.Policy) error {
 	composer := NewComposer(p.config.PolicyTemplates, p.config.PolicyOutput)
-	if err := composer.GeneratePolicySet(pl, p.config); err != nil {
+	if err := composer.GeneratePolicySet(pl, *p.config); err != nil {
 		return fmt.Errorf("error generating policies: %w", err)
 	}
 
 	if p.config.Bundle != "" {
 		logger.Info(fmt.Sprintf("Creating policy bundle at %s", p.config.Bundle))
-		if err := composer.Bundle(context.Background(), p.config); err != nil {
+		if err := composer.Bundle(context.Background(), *p.config); err != nil {
 			return fmt.Errorf("error creating policy bundle: %w", err)
 		}
 	}

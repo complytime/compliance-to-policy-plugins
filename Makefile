@@ -17,7 +17,7 @@
 # Define a list of your Go modules.
 # Add or remove modules here as your project evolves.
 # The path should be relative to the Makefile's location.
-PLUGINS := ./opa-plugin
+PLUGINS := ./conforma-opa-plugin
 
 # The directory where the compiled binaries will be placed.
 BIN_DIR := bin

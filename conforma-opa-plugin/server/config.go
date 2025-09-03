@@ -8,25 +8,31 @@ import (
 )
 
 type Config struct {
-	PolicyTemplates string `mapstructure:"policy-templates"`
-	PolicyOutput    string `mapstructure:"policy-output"`
-	PolicyResults   string `mapstructure:"policy-results"`
-
-	// Conforma
+	// Required
+	PolicyResults      string `mapstructure:"policy-results"`
 	ConformaPolicyPath string `mapstructure:"conforma-policy-path"`
 
-	// Bundle local policy optionally by setting this value
-	Bundle               string `mapstructure:"bundle"`
-	BundleTargetLocation string `mapsturcture:"bundle-location"`
-	BundleRevision       string `mapstructure:"bundle-revision"`
-	// TODO: Add support for signing
+	// Set the bundle location. If creating one locally, this can
+	// fall back to the local bundle location.
+	BundleLocation string `mapstructure:"bundle-location"`
+
+	// Optionally bundle local policy
+	Bundle         string `mapstructure:"bundle"`
+	BundleRevision string `mapstructure:"bundle-revision"`
+
+	// Optional if building locally
+	PolicyTemplates string `mapstructure:"policy-templates"`
+	PolicyOutput    string `mapstructure:"policy-output"`
 }
 
-func (c Config) Validate() error {
-	var errs []error
-	if err := checkPath(&c.PolicyOutput); err != nil {
-		errs = append(errs, err)
+func (c *Config) Complete() {
+	if c.Bundle != "" && c.BundleLocation == "" {
+		c.BundleLocation = c.Bundle
 	}
+}
+
+func (c *Config) Validate() error {
+	var errs []error
 	if err := checkPath(&c.PolicyResults); err != nil {
 		errs = append(errs, err)
 	}
@@ -35,9 +41,20 @@ func (c Config) Validate() error {
 		errs = append(errs, err)
 	}
 
-	if err := checkPath(&c.PolicyTemplates); err != nil {
-		errs = append(errs, err)
+	if c.PolicyTemplates != "" {
+		if err := checkPath(&c.PolicyOutput); err != nil {
+			errs = append(errs, err)
+		}
+
+		if err := checkPath(&c.PolicyTemplates); err != nil {
+			errs = append(errs, err)
+		}
 	}
+
+	if c.BundleLocation == "" {
+		errs = append(errs, errors.New("bundle-location cannot be empty"))
+	}
+
 	return errors.Join(errs...)
 }
 
