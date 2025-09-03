@@ -5,7 +5,7 @@ import (
 
 	"github.com/oscal-compass/compliance-to-policy-go/v2/plugin"
 
-	"github.com/complytime/compliance-to-policy-plugins/conforma-opa-plugin/server"
+	"github.com/complytime/compliance-to-policy-plugins/opa-plugin/server"
 )
 
 func main() {

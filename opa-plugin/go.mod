@@ -1,4 +1,4 @@
-module github.com/complytime/compliance-to-policy-plugins/conforma-opa-plugin
+module github.com/complytime/compliance-to-policy-plugins/opa-plugin
 
 go 1.24.5
 
