@@ -8,26 +8,53 @@ import (
 )
 
 type Config struct {
-	PolicyTemplates string `mapstructure:"policy-templates"`
-	PolicyOutput    string `mapstructure:"policy-output"`
-	PolicyResults   string `mapstructure:"policy-results"`
-	// Bundle optionally by setting this value
+	// Required
+	PolicyResults      string `mapstructure:"policy-results"`
+	ConformaPolicyPath string `mapstructure:"conforma-policy-path"`
+
+	// Set the bundle location. If creating one locally, this can
+	// fall back to the local bundle location.
+	BundleLocation string `mapstructure:"bundle-location"`
+
+	// Optionally bundle local policy
 	Bundle         string `mapstructure:"bundle"`
 	BundleRevision string `mapstructure:"bundle-revision"`
-	// TODO: Add support for signing
+
+	// Optional if building locally
+	PolicyTemplates string `mapstructure:"policy-templates"`
+	PolicyOutput    string `mapstructure:"policy-output"`
 }
 
-func (c Config) Validate() error {
-	var errs []error
-	if err := checkPath(&c.PolicyOutput); err != nil {
-		errs = append(errs, err)
+func (c *Config) Complete() {
+	if c.Bundle != "" && c.BundleLocation == "" {
+		c.BundleLocation = c.Bundle
 	}
+}
+
+func (c *Config) Validate() error {
+	var errs []error
 	if err := checkPath(&c.PolicyResults); err != nil {
 		errs = append(errs, err)
 	}
-	if err := checkPath(&c.PolicyTemplates); err != nil {
+
+	if err := checkPath(&c.ConformaPolicyPath); err != nil {
 		errs = append(errs, err)
 	}
+
+	if c.PolicyTemplates != "" {
+		if err := checkPath(&c.PolicyOutput); err != nil {
+			errs = append(errs, err)
+		}
+
+		if err := checkPath(&c.PolicyTemplates); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if c.BundleLocation == "" {
+		errs = append(errs, errors.New("bundle-location cannot be empty"))
+	}
+
 	return errors.Join(errs...)
 }
 
