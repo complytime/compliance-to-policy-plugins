@@ -58,7 +58,7 @@ func (p *Plugin) Generate(ctx context.Context, pl policy.Policy) error {
 	return nil
 }
 
-func (p *Plugin) GetResults(_ context.Context, pl policy.Policy) (policy.PVPResult, error) {
+func (p *Plugin) GetResults(ctx context.Context, pl policy.Policy) (policy.PVPResult, error) {
 
 	policyIndex := NewLoader()
 	if err := policyIndex.LoadFromDirectory(p.config.PolicyResults); err != nil {
@@ -80,8 +80,17 @@ func (p *Plugin) GetResults(_ context.Context, pl policy.Policy) (policy.PVPResu
 					Collected:   time.Now(),
 					Subjects:    []policy.Subject{},
 				}
-				for _, result := range reports {
-					observation.Subjects = append(observation.Subjects, results2Subject(result)...)
+				for _, report := range reports {
+					observation.Subjects = append(observation.Subjects, results2Subject(report)...)
+					if p.config.ForwardLogs != "" {
+						activity, err := ReportToScanActivity(report)
+						if err != nil {
+							return policy.PVPResult{}, fmt.Errorf("error converting to OCSF: %w", err)
+						}
+						if err := PushEvidence(ctx, p.config.ForwardLogs, activity); err != nil {
+							return policy.PVPResult{}, fmt.Errorf("failed to push logs: %w", err)
+						}
+					}
 				}
 				observations = append(observations, observation)
 			}
@@ -91,6 +100,7 @@ func (p *Plugin) GetResults(_ context.Context, pl policy.Policy) (policy.PVPResu
 	result := policy.PVPResult{
 		ObservationsByCheck: observations,
 	}
+
 	return result, nil
 }
 

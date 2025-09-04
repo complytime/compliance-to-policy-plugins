@@ -23,6 +23,9 @@ type Config struct {
 	// Optional if building locally
 	PolicyTemplates string `mapstructure:"policy-templates"`
 	PolicyOutput    string `mapstructure:"policy-output"`
+
+	// Optionally forward logs to proofwatch.
+	ForwardLogs string `mapstructure:"forward-logs"`
 }
 
 func (c *Config) Complete() {

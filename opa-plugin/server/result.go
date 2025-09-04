@@ -56,3 +56,10 @@ func mapResults(input Input) policy.Result {
 	}
 	return policy.ResultFail
 }
+
+func mapReportStatus(report Report) (string, int32) {
+	if report.Success {
+		return "success", 1
+	}
+	return "failure", 2
+}
