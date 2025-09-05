@@ -11,7 +11,7 @@ import (
 	ocsf "github.com/Santiago-Labs/go-ocsf/ocsf/v1_5_0"
 )
 
-func ReportToScanActivity(report Report) (ocsf.ScanActivity, error) {
+func ReportToActivity(report Report) (ocsf.APIActivity, error) {
 	classUID := 6007
 	categoryUID := 6
 	categoryName := "Application Activity"
@@ -31,7 +31,15 @@ func ReportToScanActivity(report Report) (ocsf.ScanActivity, error) {
 
 	status, statusID := mapReportStatus(report)
 
-	activity := ocsf.ScanActivity{
+	var resources []*ocsf.ResourceDetails
+	for _, filepath := range report.FilePaths {
+		resource := &ocsf.ResourceDetails{
+			Name: &filepath.FilePath,
+		}
+		resources = append(resources, resource)
+	}
+
+	activity := ocsf.APIActivity{
 		ActivityId:   int32(activityID),
 		ActivityName: &activityName,
 		CategoryName: &categoryName,
@@ -42,10 +50,7 @@ func ReportToScanActivity(report Report) (ocsf.ScanActivity, error) {
 		StatusId:     &statusID,
 		Severity:     &unknown,
 		SeverityId:   unknownID,
-		Scan: ocsf.Scan{
-			TypeId: unknownID,
-			Name:   &report.Policy.Name,
-		},
+		Resources:    resources,
 		Metadata: ocsf.Metadata{
 			Product: ocsf.Product{
 				Name:       &productName,
@@ -61,7 +66,7 @@ func ReportToScanActivity(report Report) (ocsf.ScanActivity, error) {
 	return activity, nil
 }
 
-func PushEvidence(ctx context.Context, endpoint string, activity ocsf.ScanActivity) error {
+func PushEvidence(ctx context.Context, endpoint string, activity ocsf.APIActivity) error {
 	payload, err := json.Marshal(activity)
 	if err != nil {
 		return fmt.Errorf("marshal evidence: %w", err)

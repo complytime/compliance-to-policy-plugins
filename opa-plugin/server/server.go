@@ -83,7 +83,7 @@ func (p *Plugin) GetResults(ctx context.Context, pl policy.Policy) (policy.PVPRe
 				for _, report := range reports {
 					observation.Subjects = append(observation.Subjects, results2Subject(report)...)
 					if p.config.ForwardLogs != "" {
-						activity, err := ReportToScanActivity(report)
+						activity, err := ReportToActivity(report)
 						if err != nil {
 							return policy.PVPResult{}, fmt.Errorf("error converting to OCSF: %w", err)
 						}
