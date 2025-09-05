@@ -36,7 +36,7 @@ func Test_Results2Subject(t *testing.T) {
 		ResourceID: "input",
 		Result:     policy.ResultFail,
 		Reason: "Branch protection for 'main' requires pull request reviews " +
-			"but has less than the configured minimum of 1 required approving reviews.\n\nAnother violation.",
+			"but has less than the configured minimum of 1 required approving reviews.\\nAnother violation.",
 	}
 
 	subject := results2Subject(report)[0]

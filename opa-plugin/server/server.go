@@ -129,7 +129,7 @@ func results2Subject(report Report) []policy.Subject {
 			reasons = []string{"No reason provided"}
 
 		}
-		subject.Reason = strings.Join(reasons, "\n\n")
+		subject.Reason = strings.Join(reasons, "\\n")
 
 		subjects = append(subjects, subject)
 	}
