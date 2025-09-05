@@ -12,11 +12,11 @@ import (
 )
 
 func ReportToActivity(report Report) (ocsf.APIActivity, error) {
-	classUID := 6007
+	classUID := 6003
 	categoryUID := 6
 	categoryName := "Application Activity"
-	className := "Scan Activity"
-	completedScan := 600702
+	className := "API Activity"
+	completedScan := 60070
 
 	// Map operation to OCSF activity type
 	var activityID int
