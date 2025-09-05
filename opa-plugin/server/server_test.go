@@ -3,33 +3,43 @@ package server
 import (
 	"testing"
 
+	"github.com/enterprise-contract/enterprise-contract-controller/api/v1alpha1"
 	"github.com/oscal-compass/compliance-to-policy-go/v2/policy"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_Results2Subject(t *testing.T) {
-	normalizedResults := NormalizedOPAResult{
-		Passed:                false,
-		Reason:                "Policy denied due to violations.",
-		EvaluatedResourceType: "resource",
-		EvaluatedResourceID:   "github.com/example/demo@main",
-		EvaluatedResourceName: "github.com/example/demo@main",
-		Violations: []string{
-			"Branch protection for 'main' requires pull request reviews but has less than the configured minimum of 1 required approving reviews.",
+	report := Report{
+		Policy: v1alpha1.EnterpriseContractPolicySpec{
+			Name: "Example",
 		},
-		RawResult: "",
+		FilePaths: []Input{
+			{
+				FilePath: "input",
+				Violations: []Result{
+					{
+						Message: "Branch protection for 'main' requires pull request reviews " +
+							"but has less than the configured minimum of 1 required approving reviews.",
+					},
+					{
+						Message: "Another violation.",
+					},
+				},
+				Success: false,
+			},
+		},
 	}
 
 	expectedSubj := policy.Subject{
-		Title:      "github.com/example/demo@main",
+		Title:      "Example assessment for input",
 		Type:       "resource",
-		ResourceID: "github.com/example/demo@main",
+		ResourceID: "input",
 		Result:     policy.ResultFail,
-		Reason: "Policy denied due to violations. Violations: Branch protection for 'main' requires pull request reviews " +
-			"but has less than the configured minimum of 1 required approving reviews.",
+		Reason: "Branch protection for 'main' requires pull request reviews " +
+			"but has less than the configured minimum of 1 required approving reviews.\\nAnother violation.",
 	}
 
-	subject := results2Subject(normalizedResults)
+	subject := results2Subject(report)[0]
 	require.Equal(t, expectedSubj.Type, subject.Type)
 	require.Equal(t, expectedSubj.Reason, subject.Reason)
 	require.Equal(t, expectedSubj.Title, subject.Title)

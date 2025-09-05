@@ -9,12 +9,12 @@ import (
 )
 
 type Loader struct {
-	policyIndex map[string][]NormalizedOPAResult
+	policyIndex map[string][]Report
 }
 
 func NewLoader() *Loader {
 	return &Loader{
-		policyIndex: make(map[string][]NormalizedOPAResult),
+		policyIndex: make(map[string][]Report),
 	}
 }
 
@@ -30,26 +30,19 @@ func (fl *Loader) LoadFromDirectory(dir string) error {
 				return err
 			}
 
-			var opaResult output
+			var opaResult Report
 			if err := json.Unmarshal(file, &opaResult); err != nil {
 				return fmt.Errorf("failed to unmarshal opa results for %s: %w", info.Name(), err)
 			}
 
-			normalizedOPAResults := NormalizeOPAResult(opaResult.Result)
-			for _, normalizedOPAResult := range normalizedOPAResults {
-				// fallback to the filename
-				policyId := strings.TrimSuffix(info.Name(), ".json")
-				if normalizedOPAResult.PolicyId != "" {
-					policyId = normalizedOPAResult.PolicyId
-				}
-				results, ok := fl.policyIndex[policyId]
-				if !ok {
-					results = []NormalizedOPAResult{}
-				}
-				results = append(results, normalizedOPAResult)
-				fl.policyIndex[policyId] = results
-			}
+			policyId := strings.TrimSuffix(info.Name(), ".json")
 
+			results, ok := fl.policyIndex[policyId]
+			if !ok {
+				results = []Report{}
+			}
+			results = append(results, opaResult)
+			fl.policyIndex[policyId] = results
 		}
 		return nil
 	}
@@ -62,7 +55,7 @@ func (fl *Loader) LoadFromDirectory(dir string) error {
 	return nil
 }
 
-func (fl *Loader) ResultsByPolicyId(policyId string) []NormalizedOPAResult {
+func (fl *Loader) ResultsByPolicyId(policyId string) []Report {
 	results := fl.policyIndex[policyId]
 	return results
 }

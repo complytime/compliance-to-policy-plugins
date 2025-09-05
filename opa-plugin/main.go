@@ -9,9 +9,9 @@ import (
 )
 
 func main() {
-	opaPlugin := server.NewPlugin()
+	conformaPlugin := server.NewPlugin()
 	plugins := map[string]hplugin.Plugin{
-		plugin.PVPPluginName: &plugin.PVPPlugin{Impl: opaPlugin},
+		plugin.PVPPluginName: &plugin.PVPPlugin{Impl: conformaPlugin},
 	}
 	config := plugin.ServeConfig{
 		PluginSet: plugins,
