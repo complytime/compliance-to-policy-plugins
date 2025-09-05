@@ -115,21 +115,21 @@ func results2Subject(report Report) []policy.Subject {
 			EvaluatedOn: report.EffectiveTime,
 		}
 
-		var sb strings.Builder
+		var reasons []string
 		switch subject.Result {
 		case policy.ResultPass:
 			for _, success := range input.Successes {
-				sb.WriteString(success.Message)
+				reasons = append(reasons, success.Message)
 			}
 		case policy.ResultFail:
 			for _, violation := range input.Violations {
-				sb.WriteString(violation.Message)
+				reasons = append(reasons, violation.Message)
 			}
 		default:
-			sb.WriteString("No reason provided")
+			reasons = []string{"No reason provided"}
 
 		}
-		subject.Reason = sb.String()
+		subject.Reason = strings.Join(reasons, "\n")
 
 		subjects = append(subjects, subject)
 	}

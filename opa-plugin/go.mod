@@ -12,6 +12,7 @@ require (
 	github.com/open-policy-agent/opa v1.7.1
 	github.com/oscal-compass/compliance-to-policy-go/v2 v2.0.0-alpha.2.0.20250902161738-db1f09222b49
 	github.com/otiai10/copy v1.14.1
+	github.com/stretchr/testify v1.10.0
 	k8s.io/apiextensions-apiserver v0.33.0
 )
 
@@ -20,6 +21,7 @@ require (
 	github.com/apache/arrow-go/v18 v18.2.1-0.20250425153947-5ae8b27ab357 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/defenseunicorns/go-oscal v0.6.2 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
@@ -42,6 +44,7 @@ require (
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/oscal-compass/oscal-sdk-go v0.0.3 // indirect
 	github.com/otiai10/mint v1.6.3 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.22.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.63.0 // indirect

@@ -31,6 +31,10 @@ type Config struct {
 func (c *Config) Complete() {
 	if c.Bundle != "" && c.BundleLocation == "" {
 		c.BundleLocation = c.Bundle
+		return
+	}
+	if c.PolicyOutput != "" && c.BundleLocation == "" {
+		c.BundleLocation = c.PolicyOutput
 	}
 }
 
