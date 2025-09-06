@@ -4,7 +4,7 @@ go 1.24.5
 
 require (
 	github.com/Santiago-Labs/go-ocsf v0.1.1-0.20250729170529-8b19b43949a6
-	github.com/complytime/complybeacon/proofwatch v0.0.0-20250827130533-b4a8f472795c
+	github.com/complytime/complybeacon/proofwatch v0.0.0-20250906220442-88c41889bd41
 	github.com/enterprise-contract/enterprise-contract-controller/api v0.1.142
 	github.com/ghodss/yaml v1.0.1-0.20220118164431-d8423dcdf344
 	github.com/go-viper/mapstructure/v2 v2.4.0
@@ -97,5 +97,3 @@ require (
 	sigs.k8s.io/structured-merge-diff/v6 v6.3.0 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
-
-replace github.com/complytime/complybeacon/proofwatch => github.com/jpower432/complybeacon/proofwatch v0.0.0-20250906213809-959c5af8fffc
