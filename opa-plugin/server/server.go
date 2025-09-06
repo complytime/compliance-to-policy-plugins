@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/complytime/complybeacon/proofwatch"
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/hashicorp/go-hclog"
 	"github.com/open-policy-agent/opa/v1/ast"
@@ -38,7 +39,10 @@ func (p *Plugin) Configure(_ context.Context, m map[string]string) error {
 	if err := mapstructure.Decode(m, &p.config); err != nil {
 		return errors.New("error decoding configuration")
 	}
-	p.config.Complete()
+	err := p.config.Complete()
+	if err != nil {
+		return err
+	}
 	return p.config.Validate()
 }
 
@@ -65,6 +69,25 @@ func (p *Plugin) GetResults(ctx context.Context, pl policy.Policy) (policy.PVPRe
 		return policy.PVPResult{}, fmt.Errorf("failed to load policy results: %w", err)
 	}
 
+	var watcher *proofwatch.ProofWatch
+	if p.config.ForwardLogs != "" {
+		conn, err := newClient(p.config.ForwardLogs, p.config.skipTLS, p.config.skipTLSVerify)
+		if err != nil {
+			return policy.PVPResult{}, fmt.Errorf("failed to create gRPC connection to collector: %w", err)
+		}
+
+		otelShutdown, err := otelSDKSetup(ctx, conn)
+		if err != nil {
+			return policy.PVPResult{}, fmt.Errorf("error with instrumentation: %w", err)
+		}
+		defer otelShutdown(ctx)
+
+		watcher, err = proofwatch.NewProofWatch("conforma", meter)
+		if err != nil {
+			return policy.PVPResult{}, fmt.Errorf("error setting up wtcher: %w", err)
+		}
+	}
+
 	var observations []policy.ObservationByCheck
 	for _, rule := range pl {
 		for _, check := range rule.Checks {
@@ -82,13 +105,13 @@ func (p *Plugin) GetResults(ctx context.Context, pl policy.Policy) (policy.PVPRe
 				}
 				for _, report := range reports {
 					observation.Subjects = append(observation.Subjects, results2Subject(report)...)
-					if p.config.ForwardLogs != "" {
-						activity, err := ReportToActivity(report)
+					if watcher != nil {
+						activity, err := reportToEvidence(name, report)
 						if err != nil {
 							return policy.PVPResult{}, fmt.Errorf("error converting to OCSF: %w", err)
 						}
-						if err := PushEvidence(ctx, p.config.ForwardLogs, activity); err != nil {
-							return policy.PVPResult{}, fmt.Errorf("failed to push logs: %w", err)
+						if err := watcher.Log(ctx, activity); err != nil {
+							return policy.PVPResult{}, err
 						}
 					}
 				}

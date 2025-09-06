@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 type Config struct {
@@ -24,18 +25,34 @@ type Config struct {
 	PolicyTemplates string `mapstructure:"policy-templates"`
 	PolicyOutput    string `mapstructure:"policy-output"`
 
-	// Optionally forward logs to proofwatch.
-	ForwardLogs string `mapstructure:"forward-logs"`
+	// Optionally forward logs to otel.
+	ForwardLogs   string `mapstructure:"forward-logs"`
+	SkipTLS       string `mapstructure:"skip-tls"`
+	SkipTLSVerify string `mapstructure:"skip-tls-verify"`
+
+	skipTLS       bool
+	skipTLSVerify bool
 }
 
-func (c *Config) Complete() {
+func (c *Config) Complete() (err error) {
 	if c.Bundle != "" && c.BundleLocation == "" {
 		c.BundleLocation = c.Bundle
-		return
-	}
-	if c.PolicyOutput != "" && c.BundleLocation == "" {
+	} else if c.PolicyOutput != "" && c.BundleLocation == "" {
 		c.BundleLocation = c.PolicyOutput
 	}
+
+	if c.ForwardLogs != "" {
+		c.skipTLSVerify, err = strconv.ParseBool(c.SkipTLSVerify)
+		if err != nil {
+			return err
+		}
+		c.skipTLS, err = strconv.ParseBool(c.SkipTLS)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (c *Config) Validate() error {
