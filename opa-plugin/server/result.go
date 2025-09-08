@@ -17,8 +17,12 @@
 package server
 
 import (
+	"encoding/json"
+	"fmt"
 	"time"
 
+	ocsf "github.com/Santiago-Labs/go-ocsf/ocsf/v1_5_0"
+	"github.com/complytime/complybeacon/proofwatch"
 	ecc "github.com/enterprise-contract/enterprise-contract-controller/api/v1alpha1"
 	"github.com/oscal-compass/compliance-to-policy-go/v2/policy"
 )
@@ -48,6 +52,88 @@ type Result struct {
 	Message  string                 `json:"msg"`
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
 	Outputs  []string               `json:"outputs,omitempty"`
+}
+
+func (r *Report) ToOCSF(checkId string) (proofwatch.Evidence, error) {
+	classUID := 6007
+	categoryUID := 6
+	categoryName := "Application Activity"
+	className := "Scan Activity"
+	completedScan := 60070
+
+	// Map operation to OCSF activity type
+	var activityID int
+	var activityName string
+	var typeName string
+
+	vendorName := "conforma"
+	productName := "conforma"
+	unknown := "unknown"
+	unknownID := int32(0)
+	action := "observed"
+	actionId := int32(3)
+	status, statusID := mapReportStatus(*r)
+	numFiles := int32(len(r.FilePaths))
+
+	uid := fmt.Sprintf("c2p-conforma-%s", r.Policy.Name)
+	activity := ocsf.ScanActivity{
+		ActivityId:   int32(activityID),
+		ActivityName: &activityName,
+		CategoryName: &categoryName,
+		CategoryUid:  int32(categoryUID),
+		ClassName:    &className,
+		ClassUid:     int32(classUID),
+		Status:       &status,
+		StatusId:     &statusID,
+		Severity:     &unknown,
+		SeverityId:   unknownID,
+		NumFiles:     &numFiles,
+		Metadata: ocsf.Metadata{
+			Uid: &uid,
+			Product: ocsf.Product{
+				Name:       &productName,
+				VendorName: &vendorName,
+				Version:    &r.EcVersion,
+			},
+			Version:     r.EcVersion,
+			LogProvider: &productName,
+		},
+		Time:     r.EffectiveTime.UnixMilli(),
+		TypeName: &typeName,
+		TypeUid:  int64(completedScan),
+	}
+
+	policyData, err := json.Marshal(r.Policy)
+	if err != nil {
+		return proofwatch.Evidence{}, err
+	}
+	policyDataStr := string(policyData)
+
+	policy := ocsf.Policy{
+		Name: &r.Policy.Name,
+		Uid:  &checkId,
+		Data: &policyDataStr,
+		Desc: &r.Policy.Description,
+	}
+
+	files := "File Name"
+	for _, input := range r.FilePaths {
+		observable := ocsf.Observable{
+			Name:   &input.FilePath,
+			Type:   &files,
+			TypeId: int32(7),
+		}
+		activity.Observables = append(activity.Observables, &observable)
+	}
+
+	evidenceEvent := proofwatch.Evidence{
+		ScanActivity: activity,
+		Policy:       policy,
+		Action:       &action,
+		ActionID:     &actionId,
+	}
+
+	return evidenceEvent, nil
 }
 
 func mapResults(input Input) policy.Result {

@@ -2,12 +2,14 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/complytime/complybeacon/proofwatch"
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/hashicorp/go-hclog"
 	"github.com/open-policy-agent/opa/v1/ast"
@@ -69,25 +71,6 @@ func (p *Plugin) GetResults(ctx context.Context, pl policy.Policy) (policy.PVPRe
 		return policy.PVPResult{}, fmt.Errorf("failed to load policy results: %w", err)
 	}
 
-	var watcher *proofwatch.ProofWatch
-	if p.config.ForwardLogs != "" {
-		conn, err := newClient(p.config.ForwardLogs, p.config.skipTLS, p.config.skipTLSVerify)
-		if err != nil {
-			return policy.PVPResult{}, fmt.Errorf("failed to create gRPC connection to collector: %w", err)
-		}
-
-		otelShutdown, err := otelSDKSetup(ctx, conn)
-		if err != nil {
-			return policy.PVPResult{}, fmt.Errorf("error with instrumentation: %w", err)
-		}
-		defer otelShutdown(ctx)
-
-		watcher, err = proofwatch.NewProofWatch("conforma", meter)
-		if err != nil {
-			return policy.PVPResult{}, fmt.Errorf("error setting up wtcher: %w", err)
-		}
-	}
-
 	var observations []policy.ObservationByCheck
 	for _, rule := range pl {
 		for _, check := range rule.Checks {
@@ -104,16 +87,24 @@ func (p *Plugin) GetResults(ctx context.Context, pl policy.Policy) (policy.PVPRe
 					Subjects:    []policy.Subject{},
 				}
 				for _, report := range reports {
-					observation.Subjects = append(observation.Subjects, results2Subject(report)...)
-					if watcher != nil {
-						activity, err := reportToEvidence(name, report)
-						if err != nil {
-							return policy.PVPResult{}, fmt.Errorf("error converting to OCSF: %w", err)
-						}
-						if err := watcher.Log(ctx, activity); err != nil {
-							return policy.PVPResult{}, err
-						}
+					activity, err := report.ToOCSF(name)
+					if err != nil {
+
+						return policy.PVPResult{}, fmt.Errorf("error converting to OCSF: %w", err)
 					}
+					evidenceData, err := json.Marshal(activity)
+					if err != nil {
+						return policy.PVPResult{}, fmt.Errorf("error marshaling evidence: %w", err)
+					}
+					evidencePath := filepath.Join(p.config.PolicyResults, fmt.Sprintf("%s.ocsf", name))
+					if err := os.WriteFile(evidencePath, evidenceData, 0600); err != nil {
+						return policy.PVPResult{}, err
+					}
+					evidenceHref := policy.Link{
+						Href: evidencePath,
+					}
+					observation.RelevantEvidences = append(observation.RelevantEvidences, evidenceHref)
+					observation.Subjects = append(observation.Subjects, results2Subject(report)...)
 				}
 				observations = append(observations, observation)
 			}
