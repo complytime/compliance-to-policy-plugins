@@ -100,8 +100,10 @@ func (p *Plugin) GetResults(ctx context.Context, pl policy.Policy) (policy.PVPRe
 					if err := os.WriteFile(evidencePath, evidenceData, 0600); err != nil {
 						return policy.PVPResult{}, err
 					}
+
 					evidenceHref := policy.Link{
-						Href: evidencePath,
+						Href:        fmt.Sprintf("file://%s", evidencePath),
+						Description: "OCSF_FILE",
 					}
 					observation.RelevantEvidences = append(observation.RelevantEvidences, evidenceHref)
 					observation.Subjects = append(observation.Subjects, results2Subject(report)...)
