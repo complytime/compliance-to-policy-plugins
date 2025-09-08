@@ -4,6 +4,9 @@ on:
     branches:
       - 'main'
 
+permissions:
+  contents: read
+
 env:
   GO_VERSION: 1.24
   GOLANGCI_LINT_VERSION: v2.1
