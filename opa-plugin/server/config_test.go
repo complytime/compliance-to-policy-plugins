@@ -11,15 +11,18 @@ func TestConfig_Complete(t *testing.T) {
 		name           string
 		config         *Config
 		expectedConfig Config
-		wantErr        string
 	}{
 		{
 			name: "Success/BundleLocationSet",
 			config: &Config{
 				BundleLocation: "example",
+				Bundle:         "bundle.tgz",
+				PolicyOutput:   "/policy",
 			},
 			expectedConfig: Config{
 				BundleLocation: "example",
+				Bundle:         "bundle.tgz",
+				PolicyOutput:   "/policy",
 			},
 		},
 		{
@@ -50,13 +53,8 @@ func TestConfig_Complete(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.config.Complete()
-			if tt.wantErr != "" {
-				require.Contains(t, err.Error(), tt.wantErr)
-			} else {
-				require.NoError(t, err)
-				require.Equal(t, tt.expectedConfig, *tt.config)
-			}
+			tt.config.Complete()
+			require.Equal(t, tt.expectedConfig, *tt.config)
 		})
 	}
 }

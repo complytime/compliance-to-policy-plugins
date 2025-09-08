@@ -41,10 +41,7 @@ func (p *Plugin) Configure(_ context.Context, m map[string]string) error {
 	if err := mapstructure.Decode(m, &p.config); err != nil {
 		return errors.New("error decoding configuration")
 	}
-	err := p.config.Complete()
-	if err != nil {
-		return err
-	}
+	p.config.Complete()
 	return p.config.Validate()
 }
 

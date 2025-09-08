@@ -120,7 +120,7 @@ func (c *Composer) GeneratePolicySet(pl policy.Policy, config Config) error {
 	if err != nil {
 		return fmt.Errorf("error marshalling conforma policy data: %w", err)
 	}
-	if err := os.WriteFile(policyFileName, policyData, 0644); err != nil {
+	if err := os.WriteFile(policyFileName, policyData, 0600); err != nil {
 		return fmt.Errorf("failed to write policy config to %s: %w", policyFileName, err)
 	}
 

@@ -49,11 +49,6 @@ checksum=$(sha256sum "$(go env GOPATH)/bin/opa-plugin" | cut -d ' ' -f 1 )
               "default": "."
             },
             {
-              "name": "forward-logs",
-              "description": "A proofwatch endpoint to send logs to.",
-              "required": false
-            },
-            {
               "name": "bundle",
               "description": "A location for an opa policy bundle. If unset, no bundle is created.",
               "required": false
@@ -71,7 +66,7 @@ checksum=$(sha256sum "$(go env GOPATH)/bin/opa-plugin" | cut -d ' ' -f 1 )
             },
             {
               "name": "policy-output",
-              "description": "A directory to write OPA configuration data in JSON for checks.",
+              "description": "A directory to copy Rego policies into expected directory structure.",
               "required": false
             }
       ]

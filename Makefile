@@ -28,11 +28,15 @@ all: test build
 # Phony targets don't correspond to actual files, so 'make' always runs them.
 .PHONY: all test build clean help
 
+workspace: ## Setup a go workspace with all modules
+		@go work init && go work use $(PLUGINS)
+.PHONY: workspace
+
 # ------------------------------------------------------------------------------
 # Test Target
 # Runs unit tests for every module in the monorepo.
 # ------------------------------------------------------------------------------
-test:
+test: ## Run unit tests
 	@for m in $(PLUGINS); do \
 		(cd $$m && go test -v ./...); \
 		if [ $$? -ne 0 ]; then \
@@ -46,7 +50,7 @@ test:
 # Build Target
 # Builds a binary for each module and places it in the $(BIN_DIR) directory.
 # ------------------------------------------------------------------------------
-build:
+build: ## Build binaries
 	@mkdir -p $(BIN_DIR)
 	@for m in $(PLUGINS); do \
     		(cd $$m && go build -v -o ../$(BIN_DIR)/ ./... ); \
@@ -57,11 +61,8 @@ build:
     done
 	@echo "--- All binaries built successfully ---"
 
-# ------------------------------------------------------------------------------
-# Clean Target
-# Removes all generated binaries and Go build caches.
-# ------------------------------------------------------------------------------
-clean:
+
+clean: ## Clean build artifacts
 	@echo "--- Cleaning up build artifacts ---"
 	@rm -rf $(BIN_DIR)
 	@go clean -modcache
@@ -71,5 +72,6 @@ clean:
 # Help Target
 # Prints a friendly help message.
 # ------------------------------------------------------------------------------
-help:
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+help: ## Display this help screen
+	@grep -E '^[a-z.A-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+.PHONY: help

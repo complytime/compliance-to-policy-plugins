@@ -19,6 +19,7 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"time"
 
 	ocsf "github.com/Santiago-Labs/go-ocsf/ocsf/v1_5_0"
@@ -73,7 +74,12 @@ func (r *Report) ToOCSF(checkId string) (proofwatch.Evidence, error) {
 	action := "observed"
 	actionId := int32(3)
 	status, statusID := mapReportStatus(*r)
-	numFiles := int32(len(r.FilePaths))
+
+	numFilesInt := len(r.FilePaths)
+	if numFilesInt > math.MaxInt32 {
+		return proofwatch.Evidence{}, fmt.Errorf("number of files (%d) exceeds the maximum value for an int32 (%d)", numFilesInt, math.MaxInt32)
+	}
+	numFiles := int32(numFilesInt)
 
 	uid := fmt.Sprintf("c2p-conforma-%s", r.Policy.Name)
 	activity := ocsf.ScanActivity{

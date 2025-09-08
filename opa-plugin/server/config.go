@@ -25,14 +25,12 @@ type Config struct {
 	PolicyOutput    string `mapstructure:"policy-output"`
 }
 
-func (c *Config) Complete() (err error) {
+func (c *Config) Complete() {
 	if c.Bundle != "" && c.BundleLocation == "" {
 		c.BundleLocation = c.Bundle
 	} else if c.PolicyOutput != "" && c.BundleLocation == "" {
 		c.BundleLocation = c.PolicyOutput
 	}
-
-	return nil
 }
 
 func (c *Config) Validate() error {
