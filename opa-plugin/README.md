@@ -10,8 +10,7 @@
 | `bundle`               | A location for an opa policy bundle.                           | Set this field if you want the plugin to build a policy bundle with all of you check policies. If unset, it will not create a bundle                             |
 | `bundle-revision`      | A revision for the produced bundle                             | The default is 1.0. Only set this is if `bundle` is set.                                                                                                         |
 | `conforma-policy-path` | A path to write the policy.yaml                                |                                                                                                                                                                  |
-| `bundle-location`      | A location for the bundle with OPA policies.                   | By default this is set to the `policy-output` value, if `bundle` is set, that overrides the value. If the OPA bundle is pre-built, this must be provided.        |
-| `forward-logs`         | A proofwatch endpoint to forward logs to                       | Set this to the address of the `push` source.                                                                                                                    |
+| `bundle-location`      | A location for the bundle with OPA policies.                   | By default this is set to the `policy-output` value, if `bundle` is set, that overrides the value. If the OPA bundle is pre-built, this must be provided.        | |
 
 ## Build locally
 
